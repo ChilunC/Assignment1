@@ -82,7 +82,7 @@ class Layer(NeuralNetwork):
         # print(b1)
         self.z1 = np.dot([X], W1) + b1  # np.zeros((1,self.nn_hidden_dim)) #len(self.W1[0])))
         # print(X)
-        self.a1 = actFun(self.z1)
+        self.a1 = self.actFun(self.z1, self.actFun_type)
 
         # self.z2 = np.zeros((len(X),self.nn_output_dim))
         # print(self.z1)
@@ -207,6 +207,51 @@ class DeepNeuralNetwork(NeuralNetwork):
         self.W2 = np.random.randn(self.nn_hidden_dim, self.nn_output_dim) / np.sqrt(self.nn_hidden_dim)
         self.b2 = np.zeros((1, self.nn_output_dim))
 
+    def actFun(self, z, type):
+        '''
+        actFun computes the activation functions
+        :param z: net input
+        :param type: Tanh, Sigmoid, or ReLU
+        :return: activations
+        '''
+
+        # YOU IMPLMENT YOUR actFun HERE
+        # print(type)
+        # print(z)
+
+        if type == 'tanh':
+            out = 1 / (1 + np.exp(-z))
+            # if np.isnan(out):
+            # print("self.b2")
+            # print(self.b2)
+            # print("out")
+            # print(out)
+            # print("np.exp(-z)")
+            # print(np.exp(-z))
+            # print("z")
+            # print(z)
+            # print("self.probs")
+            # print(self.probs)
+            # input()
+        elif type == 'Sigmoid':
+            out = np.tanh(z)
+        elif type == 'ReLU':
+            out = z
+
+            for n in range(self.nn_layers_dim):
+                # print(z[n])
+                out[n] = z[n] * (z[n] > 0)  # max([0,z]) # max([0,z[n]])
+                # if z >= 0
+                #    out = z
+                # else
+                #    out = 0
+        else:
+            # print(type)
+            print("Your type is not correct. It is " + type)
+        # print("out")
+        # print(out)
+        return out
+
     def feedforward(self, X, actFun):
         '''
         feedforward builds a 3-layer neural network and computes the two probabilities,
@@ -218,69 +263,83 @@ class DeepNeuralNetwork(NeuralNetwork):
         # print(actFun)
         # YOU IMPLEMENT YOUR feedforward HERE
         # print("hahaha " + actFun)
-        self.z1 = np.zeros((len(X), self.nn_hidden_dim))  # len(self.W1[0])))
+
         if self.nn_layers_dim:
             self.zn = np.zeros((self.nn_layers_dim, len(X), self.nn_hidden_dim))
             self.an = np.zeros((self.nn_layers_dim, len(X), self.nn_hidden_dim))
+
+        self.z1 = np.dot(X, self.W1) + self.b1  # np.zeros((len(X),self.nn_hidden_dim)) #len(self.W1[0])))
+        self.a1 = actFun(self.z1)
+        if self.nn_layers_dim:
+            self.zn[0], self.an[0] = self.Layer1.feedforward(self.a1, self.Wn[0], self.bn[0],
+                                                             lambda x: self.actFun(x, type=self.actFun_type))
+            if self.nn_layers_dim > 1:
+                for d in range(self.nn_layers_dim - 1):
+                    self.zn[d + 1], self.an[d + 1] = self.Layer1.feedforward(self.an[d], self.Wn[d + 1], self.bn[d + 1],
+                                                                             lambda x: self.actFun(x,
+                                                                                                   type=self.actFun_type))
+        self.z2 = np.dot(self.an[self.nn_layers_dim - 1],
+                         self.W2) + self.b2  # np.zeros((len(X),self.nn_hidden_dim)) #len(self.W1[0])))
+        self.a2 = actFun(self.z2)
+        # print(self.a2)
+        # if self.nn_layers_dim:
+        #    self.zn = np.zeros((self.nn_layers_dim,len(X),self.nn_hidden_dim))
+        #    self.an = np.zeros((self.nn_layers_dim,len(X),self.nn_hidden_dim))
         # print(self.nn_layers_dim)
         # print(self.an[0])
         # print(X)
-        self.a1 = self.z1
-        self.z2 = np.zeros((len(X), self.nn_output_dim))
+        # self.a1 = self.z1
+        # self.z2 = np.zeros((len(X),self.nn_output_dim))
         # print(self.z1)
         # loop through each example
-        for k in range(len(X)):
-            # loop through each dimension of each sample
-            for i in range(self.nn_hidden_dim):
-                # loop through inputs for each sample
-                for n in range(len(X[k])):
-                    self.z1[k][i] += self.W1[n][i] * X[k][n]
-                self.z1[k][i] += self.b1[0][i]
+        # for k in range(len(X)):
+        # loop through each dimension of each sample
+        # for i in range(self.nn_hidden_dim):
+        # loop through inputs for each sample
+        #    for n in range(len(X[k])):
+        #        self.z1[k][i] += self.W1[n][i]*X[k][n]
+        #    self.z1[k][i] += self.b1[0][i]
 
-                self.a1[k][i] = actFun(self.z1[k][i])
-            # if more than one layer get the feedforward values
-            if self.nn_layers_dim:
-                # print(self.W1)
-                # print(self.b1)
-                self.zn[0][k], self.an[0][k] = self.Layer1.feedforward(self.a1[k], self.Wn[0], self.bn[0],
-                                                                       lambda x: self.actFun(x, type=self.actFun_type))
-                # for i in range(self.nn_hidden_dim):
-                # self.zn[k][0][i] += self.W1[1][n][i]*self.a1[k][i]
-                # self.an[k][0][i] = actFun(self.zn[k][0][i])
-                # if more than two layers loop until all layers are found.
-                # print(self.an[k])
-                if self.nn_layers_dim > 1:
-                    for d in range(self.nn_layers_dim - 1):
-                        # print(self.bn)
-                        self.zn[d + 1][k], self.an[d + 1][k] = self.Layer1.feedforward(self.an[d][k], self.Wn[d + 1],
-                                                                                       self.bn[d + 1],
-                                                                                       lambda x: self.actFun(x,
-                                                                                                             type=self.actFun_type))
-                        # self.zn[k][d+1][i] += self.W1[2+d][n][i]*self.zn[k][d][i]
-                        # self.an[k][d+1][i] = actFun(self.zn[k][d+1][i])
-                # print(self.an[k])
-                # for i in range(self.nn_hidden_dim):
-                #    self.zn[k][0][i] += self.b1[1][i]
-                #    if self.nn_layers_dim>2:
-                #        for d in range(self.nn_layers_dim-2):
-                #            self.zn[k][d+1][i] += self.b1[2+d][i]
-                # print("z1")
-                # print(self.z1[k][i])
-                # print("actFun")
-                # print(actFun(self.z1[k][i]))
+        #    self.a1[k][i] = actFun(self.z1[k][i])
+        # if more than one layer get the feedforward values
+        # if self.nn_layers_dim:
+        # print(self.W1)
+        # print(self.b1)
+        #    self.zn[0][k], self.an[0][k] = self.Layer1.feedforward(self.a1[k], self.Wn[0], self.bn[0], lambda x: self.actFun(x, type=self.actFun_type))
+        # for i in range(self.nn_hidden_dim):
+        # self.zn[k][0][i] += self.W1[1][n][i]*self.a1[k][i]
+        # self.an[k][0][i] = actFun(self.zn[k][0][i])
+        # if more than two layers loop until all layers are found.
+        # print(self.an[k])
+        #    if self.nn_layers_dim>1:
+        #        for d in range(self.nn_layers_dim-1):
+        # print(self.bn)
+        #            self.zn[d+1][k], self.an[d+1][k]= self.Layer1.feedforward(self.an[d][k], self.Wn[d+1], self.bn[d+1], lambda x: self.actFun(x, type=self.actFun_type))
+        # self.zn[k][d+1][i] += self.W1[2+d][n][i]*self.zn[k][d][i]
+        # self.an[k][d+1][i] = actFun(self.zn[k][d+1][i])
+        # print(self.an[k])
+        # for i in range(self.nn_hidden_dim):
+        #    self.zn[k][0][i] += self.b1[1][i]
+        #    if self.nn_layers_dim>2:
+        #        for d in range(self.nn_layers_dim-2):
+        #            self.zn[k][d+1][i] += self.b1[2+d][i]
+        # print("z1")
+        # print(self.z1[k][i])
+        # print("actFun")
+        # print(actFun(self.z1[k][i]))
 
-                # print(self.an[k])
-                # loop through output and hidden dim or final layer weights to get the output
-                for j in range(len(self.W2[0])):
-                    for b in range(self.nn_hidden_dim):
-                        self.z2[k][j] += self.W2[b][j] * self.an[self.nn_layers_dim - 1][k][b]
-                    self.z2[k][j] += self.b2[0][j]
-            else:
-                # if no hidden layer, just jump to calculating the output
-                for j in range(len(self.W2[0])):
-                    for b in range(self.nn_hidden_dim):
-                        self.z2[k][j] += self.W2[b][j] * self.a1[k][b]
-                    self.z2[k][j] += self.b2[0][j]
+        # print(self.an[k])
+        # loop through output and hidden dim or final layer weights to get the output
+        #    for j in range(len(self.W2[0])):
+        #        for b in range(self.nn_hidden_dim):
+        #            self.z2[k][j] += self.W2[b][j]*self.an[self.nn_layers_dim-1][k][b]
+        #        self.z2[k][j]+=self.b2[0][j]
+        # else:
+        # if no hidden layer, just jump to calculating the output
+        #    for j in range(len(self.W2[0])):
+        #        for b in range(self.nn_hidden_dim):
+        #            self.z2[k][j] += self.W2[b][j]*self.a1[k][b]
+        #        self.z2[k][j]+=self.b2[0][j]
 
         # self.a2 = softmax(self.z2)
         exp_scores = np.exp(self.z2)
@@ -361,15 +420,15 @@ class DeepNeuralNetwork(NeuralNetwork):
         db2 = np.sum(delta3, axis=0)
         # print(self.zn[self.nn_layers_dim-1])
         # delta2 = delta3.dot(self.W2.T) * self.diff_actFun(self.z1, type=self.actFun_type)
-
+        # delta2 = np.dot(delta3,np.transpose(self.W2))*self.diff_actFun(self.z1,self.actFun_type)
         delta2 = np.dot(delta3, np.transpose(self.W2)) * self.diff_actFun(self.zn[self.nn_layers_dim - 1],
                                                                           self.actFun_type)
         dbn = np.zeros((self.nn_layers_dim, self.nn_hidden_dim))
         dWn = np.zeros(
             (self.nn_layers_dim, self.nn_hidden_dim, self.nn_hidden_dim))  # np.zeros((1, self.nn_layers_dim))
         for n in range(self.nn_layers_dim - 1):
-            dWn[self.nn_layers_dim - 2 - n] = np.dot(np.transpose(self.an[self.nn_layers_dim - 2 - n]), delta2)
-            dbn[self.nn_layers_dim - 2 - n] = np.sum(delta2, axis=0)
+            dWn[self.nn_layers_dim - 1 - n] = np.dot(np.transpose(self.an[self.nn_layers_dim - 1 - n]), delta2)
+            dbn[self.nn_layers_dim - 1 - n] = np.sum(delta2, axis=0)
             delta2 = self.Layer1.backprop(self.an[self.nn_layers_dim - 1 - n], self.Wn[self.nn_layers_dim - 1 - n],
                                           self.zn[self.nn_layers_dim - 1 - n], delta2)
         # print(delta2)
@@ -382,7 +441,7 @@ class DeepNeuralNetwork(NeuralNetwork):
 
         return dW1, dW2, db1, db2, dWn, dbn
 
-    def fit_model(self, X, y, epsilon=0.0005, num_passes=20000, print_loss=True):
+    def fit_model(self, X, y, epsilon=0.00055, num_passes=20000, print_loss=True):
         '''
         fit_model uses backpropagation to train the network
         :param X: input data
@@ -441,7 +500,7 @@ def main():
     # plt.scatter(X[:, 0], X[:, 1], s=40, c=y, cmap=plt.cm.Spectral)
     # plt.show()
     # def __init__(self, nn_input_dim, nn_hidden_dim , nn_output_dim, nn_layers_dim, actFun_type='tanh', reg_lambda=0.01, seed=0):
-    model = DeepNeuralNetwork(nn_input_dim=2, nn_hidden_dim=3, nn_output_dim=2, nn_layers_dim=4, actFun_type='tanh')
+    model = DeepNeuralNetwork(nn_input_dim=2, nn_hidden_dim=3, nn_output_dim=2, nn_layers_dim=3, actFun_type='ReLU')
     model.fit_model(X, y)
     model.visualize_decision_boundary(X, y)
 

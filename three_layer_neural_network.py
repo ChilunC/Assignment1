@@ -99,7 +99,8 @@ class NeuralNetwork(object):
         elif type == 'Sigmoid':
             out = np.tanh(z)
         elif type == 'ReLU':
-            out = max([0, z])
+            # print(z)
+            out = z * (z > 0)  # max([0,z])# #
             # if z >= 0
             #    out = z
             # else
@@ -262,8 +263,8 @@ class NeuralNetwork(object):
         dW2 = np.dot(np.transpose(self.a1), delta3)
         # print(dW2)
         db2 = np.sum(delta3, axis=0)
-        print(self.z1)
-        input()
+        # print(self.z1)
+        # input()
         # delta2 = delta3.dot(self.W2.T) * self.diff_actFun(self.z1, type=self.actFun_type)
         delta2 = np.dot(delta3, np.transpose(self.W2)) * self.diff_actFun(self.z1, self.actFun_type)
         # print(delta2)
@@ -273,7 +274,7 @@ class NeuralNetwork(object):
 
         return dW1, dW2, db1, db2
 
-    def fit_model(self, X, y, epsilon=0.00005, num_passes=20000, print_loss=True):
+    def fit_model(self, X, y, epsilon=0.000000001, num_passes=20000, print_loss=True):
         '''
         fit_model uses backpropagation to train the network
         :param X: input data
