@@ -126,10 +126,22 @@ class NeuralNetwork(object):
         elif type == 'Sigmoid':
             out = (2 / (np.exp(z) + np.exp(-z)))
         elif type == 'ReLU':
-            if z >= 0:
-                out = 1
-            else:
-                out = 0
+            out = z
+            # print(out[0][0])
+            # delta3[range(num_examples), y]
+            for outrow in range(len(out)):
+                for outcol in range(len(out[0])):
+                    if out[outrow][outcol] > 0:
+                        out[outrow][outcol] = 1
+                    else:
+                        out[outrow][outcol] = 0
+                        # out = np.where(z>0)
+                        # print(out)
+                        # input()
+                        # if z >= 0:
+                        #    out = 1
+                        # else:
+                        #    out = 0
         else:
             # print(type)
             print("Your type is not correct. It is " + type)
@@ -250,7 +262,8 @@ class NeuralNetwork(object):
         dW2 = np.dot(np.transpose(self.a1), delta3)
         # print(dW2)
         db2 = np.sum(delta3, axis=0)
-        # print(delta3)
+        print(self.z1)
+        input()
         # delta2 = delta3.dot(self.W2.T) * self.diff_actFun(self.z1, type=self.actFun_type)
         delta2 = np.dot(delta3, np.transpose(self.W2)) * self.diff_actFun(self.z1, self.actFun_type)
         # print(delta2)
@@ -260,7 +273,7 @@ class NeuralNetwork(object):
 
         return dW1, dW2, db1, db2
 
-    def fit_model(self, X, y, epsilon=0.0002, num_passes=20000, print_loss=True):
+    def fit_model(self, X, y, epsilon=0.00005, num_passes=20000, print_loss=True):
         '''
         fit_model uses backpropagation to train the network
         :param X: input data
@@ -328,7 +341,7 @@ def main():
     # plt.scatter(X[:, 0], X[:, 1], s=40, c=y, cmap=plt.cm.Spectral)
     # plt.show()
 
-    model = NeuralNetwork(nn_input_dim=2, nn_hidden_dim=4, nn_output_dim=2, actFun_type='tanh')
+    model = NeuralNetwork(nn_input_dim=2, nn_hidden_dim=5, nn_output_dim=2, actFun_type='tanh')
     model.fit_model(X, y)
     model.visualize_decision_boundary(X, y)
 
