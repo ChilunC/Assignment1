@@ -155,10 +155,10 @@ class DeepNeuralNetwork(NeuralNetwork):
         # print(z)
 
         if type == 'tanh':
-            out = 1 / (1 + np.exp(-z))
+            out = np.tanh(z)
 
         elif type == 'Sigmoid':
-            out = np.tanh(z)
+            out = 1 / (1 + np.exp(-z))
         elif type == 'ReLU':
             out = z
 
@@ -205,7 +205,7 @@ class DeepNeuralNetwork(NeuralNetwork):
                                                                                                    type=self.actFun_type))
         self.z2 = np.dot(self.an[self.nn_layers_dim - 1],
                          self.W2) + self.b2  # np.zeros((len(X),self.nn_hidden_dim)) #len(self.W1[0])))
-        self.a2 = actFun(self.z2)
+        # self.a2 = actFun(self.z2)
 
         exp_scores = np.exp(self.z2)
         # print(np.sum(exp_scores, axis=1, keepdims=True))
@@ -287,7 +287,7 @@ class DeepNeuralNetwork(NeuralNetwork):
 
         return dW1, dW2, db1, db2, dWn, dbn
 
-    def fit_model(self, X, y, epsilon=0.0001, num_passes=20000, print_loss=True):
+    def fit_model(self, X, y, epsilon=0.000055, num_passes=20000, print_loss=True):
         '''
         fit_model uses backpropagation to train the network
         :param X: input data
@@ -346,7 +346,7 @@ def main():
     # plt.scatter(X[:, 0], X[:, 1], s=40, c=y, cmap=plt.cm.Spectral)
     # plt.show()
     # def __init__(self, nn_input_dim, nn_hidden_dim , nn_output_dim, nn_layers_dim, actFun_type='tanh', reg_lambda=0.01, seed=0):
-    model = DeepNeuralNetwork(nn_input_dim=2, nn_hidden_dim=3, nn_output_dim=2, nn_layers_dim=5, actFun_type='tanh')
+    model = DeepNeuralNetwork(nn_input_dim=2, nn_hidden_dim=6, nn_output_dim=2, nn_layers_dim=6, actFun_type='tanh')
     model.fit_model(X, y)
     model.visualize_decision_boundary(X, y)
 

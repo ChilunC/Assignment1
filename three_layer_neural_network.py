@@ -83,7 +83,7 @@ class NeuralNetwork(object):
         # print(z)
         out = 0
         if type == 'tanh':
-            out = 1 / (1 + np.exp(-z))
+            out = np.tanh(z)
             # if np.isnan(out):
             # print("self.b2")
             # print(self.b2)
@@ -97,7 +97,8 @@ class NeuralNetwork(object):
             # print(self.probs)
             # input()
         elif type == 'Sigmoid':
-            out = np.tanh(z)
+            out = 1 / (1 + np.exp(-z))
+
         elif type == 'ReLU':
             # print(z)
             out = z * (z > 0)  # max([0,z])# #
@@ -123,9 +124,9 @@ class NeuralNetwork(object):
         # YOU IMPLEMENT YOUR diff_actFun HERE
         out = 0
         if type == 'tanh':
-            out = np.exp(z) / ((1 + np.exp(z)) * (1 + np.exp(z)))
+            out = (1 / np.cosh(z)) ** 2
         elif type == 'Sigmoid':
-            out = (2 / (np.exp(z) + np.exp(-z)))
+            out = np.exp(z) / ((1 + np.exp(z)) ** 2)  # (1+np.exp(z))) #(2/(np.exp(z)+np.exp(-z)))
         elif type == 'ReLU':
             out = z
             # print(out[0][0])
@@ -158,30 +159,35 @@ class NeuralNetwork(object):
         '''
         # print(actFun)
         # YOU IMPLEMENT YOUR feedforward HERE
+        self.z1 = np.dot(X, self.W1) + self.b1  # np.zeros((len(X),self.nn_hidden_dim)) #len(self.W1[0])))
+        self.a1 = actFun(self.z1)
+        self.z2 = np.dot(self.a1, self.W2) + self.b2  # np.zeros((len(X),self.nn_hidden_dim)) #len(self.W1[0])))
+        # self.a2 = actFun(self.z2)
+
         # print("hahaha " + actFun)
-        self.z1 = np.zeros((len(X), self.nn_hidden_dim))  # len(self.W1[0])))
+        # self.z1 = np.zeros((len(X),self.nn_hidden_dim)) #len(self.W1[0])))
         # print(X)
-        self.a1 = self.z1
-        self.z2 = np.zeros((len(X), self.nn_output_dim))
+        # self.a1 = self.z1
+        # self.z2 = np.zeros((len(X),self.nn_output_dim))
         # print(self.z1)
         # loop through each example
-        for k in range(len(X)):
-            # loop through each dimension of each sample
-            for i in range(self.nn_hidden_dim):
-                # loop through inputs for each sample
-                for n in range(len(X[k])):
-                    self.z1[k][i] += self.W1[n][i] * X[k][n]
-                self.z1[k][i] += self.b1[0][i]
-                # print("z1")
-                # print(self.z1[k][i])
-                # print("actFun")
-                # print(actFun(self.z1[k][i]))
-                self.a1[k][i] = actFun(self.z1[k][i])
-            # print(self.b2)
-            for j in range(len(self.W2[0])):
-                for b in range(self.nn_hidden_dim):
-                    self.z2[k][j] += self.W2[b][j] * self.a1[k][b]
-                self.z2[k][j] += self.b2[0][j]
+        # for k in range(len(X)):
+        # loop through each dimension of each sample
+        #    for i in range(self.nn_hidden_dim):
+        # loop through inputs for each sample
+        #        for n in range(len(X[k])):
+        #            self.z1[k][i] += self.W1[n][i]*X[k][n]
+        #        self.z1[k][i] += self.b1[0][i]
+        # print("z1")
+        # print(self.z1[k][i])
+        # print("actFun")
+        # print(actFun(self.z1[k][i]))
+        #        self.a1[k][i] = actFun(self.z1[k][i])
+        # print(self.b2)
+        #    for j in range(len(self.W2[0])):
+        #        for b in range(self.nn_hidden_dim):
+        #            self.z2[k][j] += self.W2[b][j]*self.a1[k][b]
+        #        self.z2[k][j]+=self.b2[0][j]
 
         # self.a2 = softmax(self.z2)
         exp_scores = np.exp(self.z2)
@@ -274,7 +280,7 @@ class NeuralNetwork(object):
 
         return dW1, dW2, db1, db2
 
-    def fit_model(self, X, y, epsilon=0.000000001, num_passes=20000, print_loss=True):
+    def fit_model(self, X, y, epsilon=0.00005, num_passes=20000, print_loss=True):
         '''
         fit_model uses backpropagation to train the network
         :param X: input data
@@ -342,7 +348,7 @@ def main():
     # plt.scatter(X[:, 0], X[:, 1], s=40, c=y, cmap=plt.cm.Spectral)
     # plt.show()
 
-    model = NeuralNetwork(nn_input_dim=2, nn_hidden_dim=5, nn_output_dim=2, actFun_type='tanh')
+    model = NeuralNetwork(nn_input_dim=2, nn_hidden_dim=3, nn_output_dim=2, actFun_type='tanh')
     model.fit_model(X, y)
     model.visualize_decision_boundary(X, y)
 
